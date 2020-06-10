@@ -83,8 +83,5 @@ if __name__ == '__main__':
         csv_reader = csv.DictReader(csv_file)
         line_num = 0
         for row in csv_reader:
-            if line_num == 0:
-                line_num += 1
-                continue
             print(row)
             download_show(row['show_name'], row['season'], row['url'])

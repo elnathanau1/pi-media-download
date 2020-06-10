@@ -1,0 +1,10 @@
+env/
+.env
+
+*.pyc
+__pycache__/
+
+instance/
+.idea
+
+test.py
