@@ -75,14 +75,16 @@ def download_show(show_name, season, aultima_show_url):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print("Please provide download file name")
         exit(0)
 
-    if not ospath.exists(sys.argv[-1]):
+    if not ospath.exists(sys.argv[1]):
         print("Please make sure file exists")
         exit(0)
 
+    DOWNLOAD_ROOT = sys.argv[2]
+    
     with open(sys.argv[1], mode='r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         line_num = 0
