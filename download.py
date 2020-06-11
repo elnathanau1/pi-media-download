@@ -59,7 +59,8 @@ def download_show(show_name, season, aultima_show_url):
     download_list = []
     for name, future in futures:
         result = future.result()
-        download_list.append((name, result))
+        if result is not None:
+            download_list.append((name, result))
 
     # download mp4 from google
     for name, download_link in download_list:
@@ -84,7 +85,7 @@ if __name__ == '__main__':
         exit(0)
 
     DOWNLOAD_ROOT = sys.argv[2]
-    
+
     with open(sys.argv[1], mode='r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         line_num = 0
