@@ -47,7 +47,7 @@ def download_show(show_name, season, aultima_show_url):
 
     # make episode api call - threaded
     futures = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         for episode in episode_list:
             if ospath.exists(download_location + episode['name']):
                 print("Skipping %s because file already exists" % episode['name'])
@@ -86,12 +86,19 @@ if __name__ == '__main__':
 
     DOWNLOAD_ROOT = sys.argv[2]
 
-    with open(sys.argv[1], mode='r', encoding='utf-8-sig') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        line_num = 0
-        for row in csv_reader:
-            print(row)
-            try:
-                download_show(row['show_name'], row['season'], row['url'])
-            except:
-                print("Failed to download show: %s", row['show_name'])
+    exceptions = 1
+    retries = 0
+    MAX_RETRIES=5
+    while exceptions > 0 | retries < MAX_RETRIES:
+        retries += 1
+        exceptions = 0
+        with open(sys.argv[1], mode='r', encoding='utf-8-sig') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            line_num = 0
+            for row in csv_reader:
+                print(row)
+                try:
+                    download_show(row['show_name'], row['season'], row['url'])
+                except:
+                    exceptions += 1
+                    print("Failed to download show: %s" % row['show_name'])
