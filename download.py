@@ -3,6 +3,7 @@ import csv
 import json
 import sys
 from os import path as ospath
+import os
 from pathlib import Path
 
 import requests
@@ -74,6 +75,10 @@ def download_show(show_name, season, aultima_show_url):
                     f.write(chunk)
                     f.flush()
 
+        # if file too small (under 2k), delete it
+        if ospath.getsize(path) < 2 * 1024:
+            os.remove(path)
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -88,7 +93,7 @@ if __name__ == '__main__':
 
     exceptions = 1
     retries = 0
-    MAX_RETRIES=5
+    MAX_RETRIES = 5
     while exceptions > 0 | retries < MAX_RETRIES:
         retries += 1
         exceptions = 0
