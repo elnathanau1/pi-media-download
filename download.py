@@ -91,4 +91,7 @@ if __name__ == '__main__':
         line_num = 0
         for row in csv_reader:
             print(row)
-            download_show(row['show_name'], row['season'], row['url'])
+            try:
+                download_show(row['show_name'], row['season'], row['url'])
+            except:
+                print("Failed to download show: %s", row['show_name'])
