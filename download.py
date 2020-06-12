@@ -63,6 +63,7 @@ def download_show(show_name, season, aultima_show_url):
         if result is not None:
             download_list.append((name, result))
 
+    deleted_files = False
     # download mp4 from google
     for name, download_link in download_list:
         print("Downloading: %s" % name)
@@ -78,6 +79,10 @@ def download_show(show_name, season, aultima_show_url):
         # if file too small (under 2k), delete it
         if ospath.getsize(path) < 2 * 1024:
             os.remove(path)
+            deleted_files = True
+
+    if deleted_files:
+        raise Exception("Downloaded files that were empty")
 
 
 if __name__ == '__main__':
