@@ -5,8 +5,10 @@ import sys
 from os import path as ospath
 import os
 from pathlib import Path
+from bs4 import BeautifulSoup
 
 import requests
+import re
 from clint.textui import progress
 from retrying import retry
 
@@ -15,18 +17,23 @@ EPISODE_ENDPOINT = "https://aultima-api-flask.herokuapp.com/get/episode"
 DOWNLOAD_ROOT = "/Users/eau/Documents/Development/aultima-api-flask/temp/"
 
 
-@retry(stop_max_attempt_number=5, wait_random_min=1000, wait_random_max=4000)
+# @retry(stop_max_attempt_number=5, wait_random_min=1000, wait_random_max=4000)
 def get_download_link(url):
     try:
         print("Retrieving download link for %s" % url)
-        new_parameters = {
-            "url": url
-        }
-        episode_json = requests.post(EPISODE_ENDPOINT, json=new_parameters).content.decode()
-        download_link = json.loads(episode_json)['download_link']
-        return download_link
-    except:
+        ep_page = requests.get(url)
+        soup = BeautifulSoup(ep_page.content, 'html.parser')
+        active = soup.find("div", {"class": "part active"})
+        video_url = 'https:' + active['data-video']
+
+        video_page = requests.get(video_url)
+        pattern = 'file: \'(.*?)\''
+        a = re.search(pattern, video_page.text)
+        return a.group(1)
+
+    except Exception as e:
         print("Failed to get download link for %s" % url)
+        print(e)
 
 
 def download_show(show_name, season, aultima_show_url):
@@ -35,16 +42,22 @@ def download_show(show_name, season, aultima_show_url):
     print("Creating %s if not exist" % download_location)
     Path(download_location).mkdir(parents=True, exist_ok=True)
 
-    # make season API call
+    # getting episodes in season
     print("Making /season API call")
-    parameters = {
-        "url": aultima_show_url,
-        "show_name": show_name,
-        "season": season
-    }
+    r = requests.get(aultima_show_url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    show_id = soup.find("li", {"class": "addto-later addto noselect"})['data-id']
+    ep_list_url = "https://7anime.io/load-list-episode/?id=" + show_id
 
-    episodes = requests.post(SEASON_ENDPOINT, json=parameters).content.decode()
-    episode_list = json.loads(episodes)
+    r = requests.get(ep_list_url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+
+    episode_list = []
+    ep_link_tags = soup.findAll("a")
+    for ep_link_tag in ep_link_tags:
+        file_name = show_name + "_S" + season + "_E" + ep_link_tag.text + ".mp4"
+        ep_url = ep_link_tag['href']
+        episode_list.append({'name': file_name, 'url': ep_url})
 
     # make episode api call - threaded
     futures = []
